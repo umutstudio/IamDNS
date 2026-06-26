@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudDNS - Gelişmiş DNS & Hesap Yönetim Paneli</title>
+    <title>IamDNS - Gelişmiş Ücretsiz DNS & Hosting Paneli</title>
     <style>
         /* Modern & Minimalist CSS Sıfırlama */
         * {
@@ -14,8 +14,22 @@
             transition: background-color 0.2s, color 0.2s, border-color 0.2s;
         }
 
-        /* Işık Modu (Beyaz ve Siyah) */
+        /* Gece Modu Varsayılan (FULL SİYAH) */
         :root {
+            --bg-color: #000000;
+            --container-bg: #0a0a0a;
+            --text-color: #ffffff;
+            --border-color: #222222;
+            --accent-color: #ffffff;
+            --accent-text: #000000;
+            --card-bg: #050505;
+            --input-bg: #111111;
+            --sub-text: #aaaaaa;
+            --sidebar-width: 280px;
+        }
+
+        /* Işık Modu Seçilebilir */
+        [data-theme="light"] {
             --bg-color: #ffffff;
             --container-bg: #f8f9fa;
             --text-color: #000000;
@@ -27,25 +41,13 @@
             --sub-text: #666666;
         }
 
-        /* Gece Modu (FULL SİYAH) */
-        [data-theme="dark"] {
-            --bg-color: #000000;
-            --container-bg: #0a0a0a;
-            --text-color: #ffffff;
-            --border-color: #222222;
-            --accent-color: #ffffff;
-            --accent-text: #000000;
-            --card-bg: #050505;
-            --input-bg: #111111;
-            --sub-text: #aaaaaa;
-        }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
         /* Header */
@@ -56,14 +58,19 @@
             padding: 15px 40px;
             border-bottom: 1px solid var(--border-color);
             background-color: var(--bg-color);
-            flex-wrap: wrap;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
             gap: 15px;
         }
 
         .logo {
             font-size: 24px;
             font-weight: 800;
-            letter-spacing: -1px;
+            letter-spacing: -1.5px;
         }
 
         .header-controls {
@@ -72,7 +79,6 @@
             gap: 15px;
         }
 
-        /* Hesap Seçim Alanı */
         .account-manager {
             display: flex;
             align-items: center;
@@ -114,467 +120,535 @@
             border-radius: 4px;
             font-size: 13px;
         }
-        .theme-toggle:hover {
+
+        /* Ana Düzen (Sidebar + İçerik) */
+        .wrapper {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* KAPANABİLİR KENAR ÇUBUĞU (SIDEBAR) */
+        .sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid var(--border-color);
+            background-color: var(--container-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: transform 0.3s ease, margin-left 0.3s ease;
+            z-index: 50;
+        }
+
+        .sidebar.closed {
+            margin-left: calc(-1 * var(--sidebar-width));
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+
+        .file-item:hover {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .file-item.active {
             background-color: var(--accent-color);
             color: var(--accent-text);
         }
 
-        /* Ana Konteyner */
-        .container {
-            max-width: 1100px;
-            width: 100%;
-            margin: 30px auto;
-            padding: 0 20px;
+        /* Ana İçerik Alanı */
+        .main-content {
             flex: 1;
-        }
-
-        h2 {
-            font-size: 26px;
-            margin-bottom: 20px;
-            font-weight: 700;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         /* Paneller */
         .panel-section {
             background-color: var(--container-bg);
             border: 1px solid var(--border-color);
-            padding: 30px;
+            padding: 25px;
             border-radius: 8px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .search-box {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
         }
 
         .search-box input {
             flex: 1;
-            padding: 15px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             background-color: var(--input-bg);
             color: var(--text-color);
-            font-size: 16px;
+            font-size: 15px;
             border-radius: 4px;
             outline: none;
-        }
-
-        .search-box button {
-            background-color: var(--accent-color);
-            color: var(--accent-text);
-            border: none;
-            padding: 0 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        /* Sonuç & Kayıt Listeleri */
-        .results-list {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
         }
 
         .item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 12px 20px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
+            margin-top: 10px;
         }
 
-        .badge-free {
-            background-color: #2b2b2b;
-            color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
+        /* Dosya Editörü ve DNS Grid Düzeni */
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 15px;
         }
-        [data-theme="dark"] .badge-free {
-            background-color: #ffffff;
+
+        .code-editor {
+            width: 100%;
+            height: 350px;
+            background-color: #050505;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            resize: vertical;
+            outline: none;
+            font-size: 14px;
+        }
+        [data-theme="light"] .code-editor {
+            background-color: #f4f4f4;
             color: #000000;
-        }
-
-        /* DNS Yönetim Alanları */
-        .dns-panel {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .dns-form {
             display: grid;
-            grid-template-columns: 1fr 1.5fr 2fr auto;
+            grid-template-columns: 1fr 1fr 1.5fr auto;
             gap: 10px;
-            margin-bottom: 25px;
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
         }
 
-        .dns-form select, .dns-form input {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border-radius: 4px;
-            outline: none;
-        }
-
-        /* Tablo */
         .dns-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: var(--card-bg);
         }
 
         .dns-table th, .dns-table td {
             border: 1px solid var(--border-color);
-            padding: 12px;
+            padding: 10px;
             text-align: left;
-            font-size: 14px;
-        }
-
-        .dns-table th {
-            background-color: var(--container-bg);
-            font-weight: 600;
+            font-size: 13px;
         }
 
         .btn-delete {
             background-color: #ff4444;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 5px 10px;
             cursor: pointer;
             border-radius: 4px;
+            font-size: 12px;
         }
-        [data-theme="dark"] .btn-delete { background-color: #880000; }
+        [data-theme="dark"] .btn-delete { background-color: #660000; }
 
-        .no-data {
-            text-align: center;
-            padding: 25px;
-            color: var(--sub-text);
-            font-style: italic;
-        }
-
-        .user-welcome {
-            font-size: 14px;
-            font-weight: 600;
-            margin-right: 5px;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">CloudDNS</div>
+        <div class="logo-area">
+            <button class="btn-action" id="toggleSidebarBtn">☰ Dosya Paneli</button>
+            <div class="logo">IamDNS</div>
+        </div>
         <div class="header-controls">
             <div class="account-manager">
-                <span class="user-welcome">Hesap:</span>
+                <span>Hesap:</span>
                 <select id="accountSelect"></select>
-                <input type="text" id="newAccountInput" placeholder="Yeni Hesap Adı" style="width: 130px;">
+                <input type="text" id="newAccountInput" placeholder="Yeni Hesap" style="width: 100px;">
                 <button class="btn-action" id="createAccountBtn">+</button>
             </div>
-            <button class="theme-toggle" id="themeToggle">DARK MODE</button>
+            <button class="theme-toggle" id="themeToggle">LIGHT MODE</button>
         </div>
     </header>
 
-    <div class="container">
-        <div id="mainDashboard">
-            <section class="panel-section">
-                <h2>Ücretsiz Global Domain Kaydı</h2>
-                <p style="color: var(--sub-text);">İstediğiniz alan adını yazın; .com, .net, .org dahil hiçbir ücret ödemeden anında tescil edin.</p>
-                <div class="search-box">
-                    <input type="text" id="domainInput" placeholder="Aramak istediğiniz adı yazın... (Örn: projem)">
-                    <button id="searchBtn">Sorgula</button>
-                </div>
-                <div class="results-list" id="searchResults"></div>
-            </section>
+    <div class="wrapper">
+        <aside class="sidebar" id="sidebarPanel">
+            <div class="sidebar-title">
+                <span>📁 Web Dosyaları</span>
+            </div>
+            <p style="font-size: 12px; color: var(--sub-text);" id="sidebarDomainName">Domain Seçilmedi</p>
+            
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="newFileName" placeholder="ornek.html" style="flex:1; padding:5px; background:var(--input-bg); color:var(--text-color); border:1px solid var(--border-color); border-radius:3px; font-size:12px;">
+                <button class="btn-action" id="addFileBtn" style="padding:5px 10px;">+</button>
+            </div>
 
-            <section class="panel-section">
-                <h2>Hesabınıza Bağlı Aktif Domainler</h2>
-                <p style="color: var(--sub-text); margin-bottom: 15px;">Şu an aktif olan hesapta kayıtlı ve yönetilebilir durumdaki alan adlarınız.</p>
-                <div class="results-list" id="myDomainsList"></div>
-            </section>
-        </div>
+            <ul class="file-list" id="fileListContainer">
+                </ul>
+        </aside>
 
-        <div id="dnsDashboard" class="dns-panel">
-            <section class="panel-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
-                    <div>
-                        <h2 id="activeDomainTitle" style="margin: 0;">domain.com</h2>
-                        <p style="color: var(--sub-text); font-size: 14px; margin-top: 5px;">Tüm DNS Kayıt Türleri Bölge Yönetimi (Aktif Plan: Ücretsiz)</p>
+        <main class="main-content">
+            
+            <div id="dashboardSection">
+                <section class="panel-section">
+                    <h2>IamDNS Kök Alan Adı Arama</h2>
+                    <div class="search-box">
+                        <input type="text" id="domainInput" placeholder="Kelime yazın ve havuz oluşturun...">
+                        <button class="btn-action" id="searchBtn">Sorgula</button>
                     </div>
-                    <button class="theme-toggle" id="backToDashboardBtn">← Panele Geri Dön</button>
+                </section>
+
+                <section class="panel-section">
+                    <h3>🔍 Sorgulanan Domain Havuzu</h3>
+                    <p style="color: var(--sub-text); font-size: 13px; margin-bottom: 10px;">Arattığınız tüm alan adları burada toplanır. Buradan seçip aktif edebilirsiniz.</p>
+                    <div id="searchedPoolResults"></div>
+                </section>
+
+                <section class="panel-section">
+                    <h3>✅ IamDNS Bulut Altyapısındaki Aktif Domainler</h3>
+                    <div id="myActiveDomains"></div>
+                </section>
+            </div>
+
+            <div id="managementSection" class="hidden">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                    <h2 id="currentManagedDomainTitle">IamDNS Kontrol Paneli</h2>
+                    <button class="theme-toggle" id="backToDashboardBtn">← Ana Listeye Dön</button>
                 </div>
 
-                <div class="dns-form">
-                    <select id="dnsType">
-                        <option value="A">A (IPv4 Yönlendirme)</option>
-                        <option value="AAAA">AAAA (IPv6 Yönlendirme)</option>
-                        <option value="CNAME">CNAME (Alias Takma Ad)</option>
-                        <option value="TXT">TXT (Doğrulama Metni)</option>
-                        <option value="MX">MX (Mail Sunucusu)</option>
-                        <option value="NS">NS (Ad Sunucusu)</option>
-                        <option value="SRV">SRV (Hizmet Konumu)</option>
-                        <option value="CAA">CAA (Sertifika Otoritesi)</option>
-                        <option value="PTR">PTR (Ters DNS)</option>
-                    </select>
-                    <input type="text" id="dnsName" placeholder="İsim (Örn: @, www, mail)">
-                    <input type="text" id="dnsValue" placeholder="Hedef Değer / IP Adresi">
-                    <button class="btn-action" id="addDnsRecordBtn" style="padding: 0 20px;">Kayıt Ekle</button>
-                </div>
+                <div class="editor-container">
+                    <div class="panel-section" id="editorPanelSection">
+                        <h3>📝 Canlı Kod Düzenleyici (<span id="editingFileName">index.html</span>)</h3>
+                        <p style="color: var(--sub-text); font-size: 13px; margin-bottom: 10px;">Sol paneldeki dosyaları seçip düzenleyin, anında IamDNS ağında yayınlansın.</p>
+                        <textarea class="code-editor" id="editorTextArea" placeholder="Dosya içeriğini yazın..."></textarea>
+                        <button class="btn-action" id="saveFileContentBtn" style="margin-top:10px; width:100%;">Değişiklikleri IamDNS Bulutuna Dağıt (Deploy)</button>
+                    </div>
 
-                <table class="dns-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">Tür</th>
-                            <th style="width: 25%;">İsim / Alt Domain</th>
-                            <th style="width: 45%;">Hedef / Değer</th>
-                            <th style="width: 15%;">İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dnsTableBody"></tbody>
-                </table>
-            </section>
-        </div>
+                    <div class="panel-section">
+                        <h3>🌐 IamDNS Bölge Ayarları (Zone DNS)</h3>
+                        <div class="dns-form">
+                            <select id="dnsType">
+                                <option value="A">A</option><option value="CNAME">CNAME</option>
+                                <option value="TXT">TXT</option><option value="MX">MX</option>
+                            </select>
+                            <input type="text" id="dnsName" placeholder="@ veya www">
+                            <input type="text" id="dnsValue" placeholder="Hedef Değer / IP">
+                            <button class="btn-action" id="addDnsBtn">Ekle</button>
+                        </div>
+                        <table class="dns-table">
+                            <thead>
+                                <tr><th>Tür</th><th>İsim</th><th>Değer</th><th>İşlem</th></tr>
+                            </thead>
+                            <tbody id="dnsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
 
     <script>
-        // --- LOCALSTORAGE VERİTABANI BAŞLATMA ---
-        let appData = JSON.parse(localStorage.getItem('CloudDNS_Data')) || {
+        // --- HAFIZA VE LOCALSTORAGE VERİTABANI MODELİ ---
+        let db = JSON.parse(localStorage.getItem('IamDNS_Data_Store')) || {
             currentAccount: "Bahar",
+            searchedPool: [], 
             accounts: {
                 "Bahar": {
-                    domains: {
-                        "maceyplugin.net": [
-                            { type: "A", name: "@", value: "76.76.21.21" },
-                            { type: "CNAME", name: "www", value: "cname.vercel-dns.com" }
-                        ]
-                    }
+                    domains: {}
                 }
             }
         };
 
-        function saveToStorage() {
-            localStorage.setItem('CloudDNS_Data', JSON.stringify(appData));
-        }
+        function save() { localStorage.setItem('IamDNS_Data_Store', JSON.stringify(db)); }
 
-        // --- ELEMENT TANIMLAMALARI ---
-        const accountSelect = document.getElementById('accountSelect');
-        const newAccountInput = document.getElementById('newAccountInput');
-        const createAccountBtn = document.getElementById('createAccountBtn');
-        const themeToggle = document.getElementById('themeToggle');
-        
-        const mainDashboard = document.getElementById('mainDashboard');
-        const dnsDashboard = document.getElementById('dnsDashboard');
-        const domainInput = document.getElementById('domainInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const searchResults = document.getElementById('searchResults');
-        const myDomainsList = document.getElementById('myDomainsList');
-        
-        const activeDomainTitle = document.getElementById('activeDomainTitle');
-        const backToDashboardBtn = document.getElementById('backToDashboardBtn');
-        const dnsType = document.getElementById('dnsType');
-        const dnsName = document.getElementById('dnsName');
-        const dnsValue = document.getElementById('dnsValue');
-        const addDnsRecordBtn = document.getElementById('addDnsRecordBtn');
+        let activeDomain = "";
+        let activeFile = "";
+
+        // --- DOM ELEMENTLERI ---
+        const sidebarPanel = document.getElementById('sidebarPanel');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const managementSection = document.getElementById('managementSection');
+        const searchedPoolResults = document.getElementById('searchedPoolResults');
+        const myActiveDomains = document.getElementById('myActiveDomains');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const editorTextArea = document.getElementById('editorTextArea');
+        const editingFileName = document.getElementById('editingFileName');
         const dnsTableBody = document.getElementById('dnsTableBody');
 
-        let targetedDomain = "";
+        // --- SIDEBAR AÇMA / KAPAMA ---
+        toggleSidebarBtn.addEventListener('click', () => {
+            sidebarPanel.classList.toggle('closed');
+        });
 
-        // --- GECE MODU AYARI ---
-        themeToggle.addEventListener('click', () => {
-            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        // --- TEMA DEĞİŞTİRME ---
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            if(document.documentElement.getAttribute('data-theme') === 'light') {
                 document.documentElement.removeAttribute('data-theme');
-                themeToggle.textContent = 'DARK MODE';
+                document.getElementById('themeToggle').textContent = 'LIGHT MODE';
             } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeToggle.textContent = 'LIGHT MODE';
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeToggle').textContent = 'DARK MODE';
             }
         });
 
-        // --- HESAP YÖNETİM SİSTEMİ ---
-        function renderAccounts() {
-            accountSelect.innerHTML = "";
-            Object.keys(appData.accounts).forEach(acc => {
+        // --- HESAP AYARLARI ---
+        function loadAccounts() {
+            const select = document.getElementById('accountSelect');
+            select.innerHTML = "";
+            Object.keys(db.accounts).forEach(acc => {
                 const opt = document.createElement('option');
-                opt.value = acc;
-                opt.textContent = acc;
-                if (acc === appData.currentAccount) opt.selected = true;
-                accountSelect.appendChild(opt);
+                opt.value = acc; opt.textContent = acc;
+                if(acc === db.currentAccount) opt.selected = true;
+                select.appendChild(opt);
             });
-            renderMyDomains();
+            renderDashboard();
         }
 
-        createAccountBtn.addEventListener('click', () => {
-            const name = newAccountInput.value.trim();
-            if (!name) return alert("Lütfen bir hesap adı girin.");
-            if (appData.accounts[name]) return alert("Bu hesap zaten mevcut.");
-            
-            appData.accounts[name] = { domains: {} };
-            appData.currentAccount = name;
-            newAccountInput.value = "";
-            saveToStorage();
-            renderAccounts();
+        document.getElementById('createAccountBtn').addEventListener('click', () => {
+            const val = document.getElementById('newAccountInput').value.trim();
+            if(!val || db.accounts[val]) return;
+            db.accounts[val] = { domains: {} };
+            db.currentAccount = val;
+            document.getElementById('newAccountInput').value = "";
+            save(); loadAccounts();
         });
 
-        accountSelect.addEventListener('change', (e) => {
-            appData.currentAccount = e.target.value;
-            saveToStorage();
-            searchResults.innerHTML = "";
-            renderMyDomains();
-            closeDnsPanel();
+        document.getElementById('accountSelect').addEventListener('change', (e) => {
+            db.currentAccount = e.target.value;
+            save(); renderDashboard(); backToDashboard();
         });
 
-        // --- DOMAIN SORGULAMA VE EKLEME ---
-        searchBtn.addEventListener('click', () => {
-            let query = domainInput.value.trim().toLowerCase().split('.')[0].replace(/[^a-z0-9-]/g, '');
-            if (!query) return alert("Lütfen geçerli bir alan adı yazın.");
+        // --- DOMAIN SORGULAMA VE HAVUZ SİSTEMİ ---
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            let query = document.getElementById('domainInput').value.trim().toLowerCase().split('.')[0].replace(/[^a-z0-9-]/g, '');
+            if(!query) return;
 
-            const extensions = ['.com', '.net', '.org', '.xyz', '.co', '.io'];
-            searchResults.innerHTML = "";
+            const exts = ['.com', '.net', '.org', '.xyz'];
+            exts.forEach(ext => {
+                const dom = query + ext;
+                if(!db.searchedPool.includes(dom)) db.searchedPool.push(dom);
+            });
+            save();
+            renderDashboard();
+        });
 
-            extensions.forEach(ext => {
-                const fullDomain = query + ext;
-                const isOwned = appData.accounts[appData.currentAccount].domains[fullDomain];
-
+        function renderDashboard() {
+            // 1. Sorgulanan Havuzu Listele
+            searchedPoolResults.innerHTML = db.searchedPool.length === 0 ? "<p style='color:var(--sub-text); font-style:italic;'>Henüz sorgulama yapılmadı.</p>" : "";
+            db.searchedPool.forEach(dom => {
+                const isAdded = db.accounts[db.currentAccount].domains[dom];
                 const div = document.createElement('div');
                 div.className = 'item-row';
                 div.innerHTML = `
+                    <div><strong>${dom}</strong> <span class="badge-free">0$ IamDNS Planı</span></div>
                     <div>
-                        <strong style="font-size: 16px;">${fullDomain}</strong>
-                        <span class="badge-free">0$ ÜCRETSİZ</span>
+                        <button class="btn-action" ${isAdded?'disabled':''} onclick="addDomainFromPool('${dom}')">${isAdded?'Eklendi':'Aktif Et'}</button>
+                        <button class="btn-delete" style="margin-left:5px;" onclick="removeFromPool('${db.searchedPool.indexOf(dom)}')">X</button>
                     </div>
-                    <button class="btn-action" ${isOwned ? "disabled" : ""} onclick="registerDomain('${fullDomain}')">
-                        ${isOwned ? "Hesabınızda Kayıtlı" : "Ücretsiz Tanımla"}
-                    </button>
                 `;
-                searchResults.appendChild(div);
+                searchedPoolResults.appendChild(div);
             });
-        });
 
-        window.registerDomain = function(domain) {
-            if (!appData.accounts[appData.currentAccount].domains[domain]) {
-                // Standart başlangıç kayıtlarıyla oluşturulur
-                appData.accounts[appData.currentAccount].domains[domain] = [
-                    { type: "A", name: "@", value: "76.76.21.21" },
-                    { type: "CNAME", name: "www", value: "cname.vercel-dns.com" }
-                ];
-                saveToStorage();
-                renderMyDomains();
-                alert(`${domain} başarıyla hesabınıza eklendi! Aşağıdaki aktif domainler listesinden DNS açabilirsiniz.`);
-                searchResults.innerHTML = "";
-                domainInput.value = "";
-            }
-        };
-
-        function renderMyDomains() {
-            myDomainsList.innerHTML = "";
-            const activeAcc = appData.accounts[appData.currentAccount];
-            const domains = Object.keys(activeAcc.domains);
-
-            if (domains.length === 0) {
-                myDomainsList.innerHTML = `<div class="no-data">Bu hesaba kayıtlı aktif domain bulunamadı. Yukarıdan aratıp ekleyebilirsiniz.</div>`;
-                return;
-            }
-
-            domains.forEach(domain => {
+            // 2. Kullanıcının Aktif Domainlerini Listele
+            const myDoms = Object.keys(db.accounts[db.currentAccount].domains);
+            myActiveDomains.innerHTML = myDoms.length === 0 ? "<p style='color:var(--sub-text); font-style:italic;'>Hesabınıza bağlı domain yok. Yukarıdaki havuzdan ekleyin.</p>" : "";
+            myDoms.forEach(dom => {
                 const div = document.createElement('div');
                 div.className = 'item-row';
                 div.innerHTML = `
-                    <div><strong>${domain}</strong></div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="theme-toggle" onclick="openDnsPanel('${domain}')">DNS Yönet (Tüm Kayıtlar)</button>
-                        <button class="btn-delete" style="padding: 6px 10px;" onclick="deleteDomain('${domain}')">Sil</button>
+                    <div><strong>${dom}</strong></div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="theme-toggle" onclick="manageDomain('${dom}')">Yönet (DNS & Dosyalar)</button>
+                        <button class="btn-delete" onclick="deleteMyDomain('${dom}')">Sil</button>
                     </div>
                 `;
-                myDomainsList.appendChild(div);
+                myActiveDomains.appendChild(div);
             });
         }
 
-        window.deleteDomain = function(domain) {
-            if (confirm(`${domain} alan adını ve tüm DNS kayıtlarını silmek istediğinize emin misiniz?`)) {
-                delete appData.accounts[appData.currentAccount].domains[domain];
-                saveToStorage();
-                renderMyDomains();
-                if (targetedDomain === domain) closeDnsPanel();
+        window.addDomainFromPool = function(domain) {
+            if(!db.accounts[db.currentAccount].domains[domain]) {
+                // Hazır Şablonlar ve DNS Kurulumu
+                db.accounts[db.currentAccount].domains[domain] = {
+                    dns: [
+                        { type: 'A', name: '@', value: '172.67.74.152' },
+                        { type: 'CNAME', name: 'www', value: 'cname.iamdns.com' }
+                    ],
+                    files: {
+                        "index.html": "<!DOCTYPE html>\n<html>\n<head>\n <meta charset='UTF-8'>\n <link rel='stylesheet' href='style.css'>\n <title>IamDNS Bulut Sitesi</title>\n</head>\n<body>\n <h1>IamDNS Siteniz Hazır!</h1>\n <p>Dosya panelinden kodları gerçek zamanlı değiştirebilirsiniz.</p>\n</body>\n</html>",
+                        "style.css": "body {\n background-color: #000000;\n color: #ffffff;\n text-align: center;\n padding-top: 80px;\n font-family: sans-serif;\n}"
+                    }
+                };
+                save(); renderDashboard();
             }
         };
 
-        // --- GERÇEK DNS KAYIT YÖNETİMİ (TÜM TÜRLER) ---
-        window.openDnsPanel = function(domain) {
-            targetedDomain = domain;
-            activeDomainTitle.textContent = domain;
-            mainDashboard.style.display = 'none';
-            dnsDashboard.style.display = 'block';
-            renderDnsRecords();
+        window.removeFromPool = function(index) {
+            db.searchedPool.splice(index, 1); save(); renderDashboard();
         };
 
-        function closeDnsPanel() {
-            dnsDashboard.style.display = 'none';
-            mainDashboard.style.display = 'block';
+        window.deleteMyDomain = function(dom) {
+            if(confirm(`${dom} alan adını ve ona bağlı tüm hosting dosyalarını silmek istediğinize emin misiniz?`)) {
+                delete db.accounts[db.currentAccount].domains[dom]; save(); renderDashboard();
+                if(activeDomain === dom) backToDashboard();
+            }
+        };
+
+        // --- TEKİL DOMAIN / DOSYA / DNS YÖNETİMİ ---
+        window.manageDomain = function(dom) {
+            activeDomain = dom;
+            document.getElementById('sidebarDomainName').textContent = dom;
+            document.getElementById('currentManagedDomainTitle').textContent = dom + " // IamDNS Modu";
+            
+            dashboardSection.classList.add('hidden');
+            managementSection.classList.remove('hidden');
+
+            renderFileList();
+            renderDnsList();
+
+            const files = Object.keys(db.accounts[db.currentAccount].domains[activeDomain].files);
+            if(files.length > 0) selectFile(files[0]);
+        };
+
+        function backToDashboard() {
+            dashboardSection.classList.remove('hidden');
+            managementSection.classList.add('hidden');
+            activeDomain = "";
+            document.getElementById('sidebarDomainName').textContent = "Domain Seçilmedi";
+            fileListContainer.innerHTML = "";
+        }
+        document.getElementById('backToDashboardBtn').addEventListener('click', backToDashboard);
+
+        // --- HOSTING DOSYA İŞLEMLERİ ---
+        function renderFileList() {
+            fileListContainer.innerHTML = "";
+            const files = db.accounts[db.currentAccount].domains[activeDomain].files;
+            
+            Object.keys(files).forEach(fileName => {
+                const li = document.createElement('li');
+                li.className = `file-item ${activeFile === fileName ? 'active' : ''}`;
+                li.innerHTML = `
+                    <span onclick="selectFile('${fileName}')">📄 ${fileName}</span>
+                    <span class="btn-delete" style="padding:2px 6px; background:#444;" onclick="deleteFile('${fileName}')">X</span>
+                `;
+                fileListContainer.appendChild(li);
+            });
         }
 
-        backToDashboardBtn.addEventListener('click', closeDnsPanel);
+        window.selectFile = function(fileName) {
+            activeFile = fileName;
+            editingFileName.textContent = fileName;
+            const content = db.accounts[db.currentAccount].domains[activeDomain].files[fileName];
+            editorTextArea.value = content;
+            
+            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+            renderFileList();
+        };
 
-        function renderDnsRecords() {
-            dnsTableBody.innerHTML = "";
-            const records = appData.accounts[appData.currentAccount].domains[targetedDomain] || [];
+        // Dosya Ekleme
+        document.getElementById('addFileBtn').addEventListener('click', () => {
+            const name = document.getElementById('newFileName').value.trim();
+            if(!name || !activeDomain) return;
+            
+            db.accounts[db.currentAccount].domains[activeDomain].files[name] = "";
+            document.getElementById('newFileName').value = "";
+            save(); renderFileList(); selectFile(name);
+        });
 
-            if (records.length === 0) {
-                dnsTableBody.innerHTML = `<tr><td colspan="4" class="no-data">Bu domaine ait girilmiş herhangi bir DNS kaydı bulunmuyor.</td></tr>`;
-                return;
+        // Dosya Silme
+        window.deleteFile = function(fileName) {
+            if(confirm(`${fileName} dosyasını kökten silmek istiyor musunuz?`)) {
+                delete db.accounts[db.currentAccount].domains[activeDomain].files[fileName];
+                save(); renderFileList();
+                
+                const remaining = Object.keys(db.accounts[db.currentAccount].domains[activeDomain].files);
+                if(remaining.length > 0) selectFile(remaining[0]);
+                else { editorTextArea.value = ""; editingFileName.textContent = "-"; }
             }
+        };
 
+        // Editör Kaydetme
+        document.getElementById('saveFileContentBtn').addEventListener('click', () => {
+            if(!activeDomain || !activeFile) return;
+            db.accounts[db.currentAccount].domains[activeDomain].files[activeFile] = editorTextArea.value;
+            save();
+            alert(`${activeFile} başarıyla IamDNS CDN sunucularına deploy edildi!`);
+        });
+
+        // --- DNS İŞLEMLERİ ---
+        function renderDnsList() {
+            dnsTableBody.innerHTML = "";
+            const records = db.accounts[db.currentAccount].domains[activeDomain].dns;
             records.forEach((rec, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><span style="background:#222; color:#fff; padding:2px 6px; border-radius:3px; font-size:11px; font-weight:bold;">${rec.type}</span></td>
+                    <td><strong>${rec.type}</strong></td>
                     <td>${rec.name}</td>
-                    <td style="word-break: break-all; font-family: monospace;">${rec.value}</td>
-                    <td><button class="btn-delete" onclick="deleteDnsRecord(${index})">Sil</button></td>
+                    <td>${rec.value}</td>
+                    <td><button class="btn-delete" onclick="deleteDns(${index})">Sil</button></td>
                 `;
                 dnsTableBody.appendChild(tr);
             });
         }
 
-        addDnsRecordBtn.addEventListener('click', () => {
-            const type = dnsType.value;
-            const name = dnsName.value.trim() || "@";
-            const value = dnsValue.value.trim();
+        document.getElementById('addDnsBtn').addEventListener('click', () => {
+            const type = document.getElementById('dnsType').value;
+            const name = document.getElementById('dnsName').value.trim() || '@';
+            const value = document.getElementById('dnsValue').value.trim();
+            if(!value) return;
 
-            if (!value) return alert("Lütfen DNS türüne uygun bir hedef değer veya IP adresi girin.");
-
-            appData.accounts[appData.currentAccount].domains[targetedDomain].push({ type, name, value });
-            saveToStorage();
-            renderDnsRecords();
-
-            dnsName.value = "";
-            dnsValue.value = "";
+            db.accounts[db.currentAccount].domains[activeDomain].dns.push({ type, name, value });
+            document.getElementById('dnsName').value = "";
+            document.getElementById('dnsValue').value = "";
+            save(); renderDnsList();
         });
 
-        window.deleteDnsRecord = function(index) {
-            appData.accounts[appData.currentAccount].domains[targetedDomain].splice(index, 1);
-            saveToStorage();
-            renderDnsRecords();
+        window.deleteDns = function(index) {
+            db.accounts[db.currentAccount].domains[activeDomain].dns.splice(index, 1);
+            save(); renderDnsList();
         };
 
-        // Sistemi İlk Kez Başlat
-        renderAccounts();
+        // İlk Çalıştırma
+        loadAccounts();
     </script>
 </body>
 </html>
