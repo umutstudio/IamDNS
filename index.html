@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudDNS - Global Ücretsiz Domain & DNS Paneli</title>
+    <style>
+        /* Modern & Minimalist CSS Sıfırlama */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        /* Işık Modu Temel Renkleri (Beyaz Ağırlıklı, Siyah Detaylar) */
+        :root {
+            --bg-color: #ffffff;
+            --container-bg: #f8f9fa;
+            --text-color: #000000;
+            --border-color: #e0e0e0;
+            --accent-color: #000000;
+            --accent-text: #ffffff;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+        }
+
+        /* Gece Modu Temel Renkleri (FULL SİYAH) */
+        [data-theme="dark"] {
+            --bg-color: #000000;
+            --container-bg: #0a0a0a;
+            --text-color: #ffffff;
+            --border-color: #222222;
+            --accent-color: #ffffff;
+            --accent-text: #000000;
+            --card-bg: #050505;
+            --input-bg: #111111;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .theme-toggle {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Ana Konteyner */
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /* Arama Bölümü */
+        .search-section {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--text-color);
+        }
+
+        .search-box button {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+            border: none;
+            padding: 0 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* Sonuç Listesi */
+        .results-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .domain-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .domain-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .badge-free {
+            background-color: #2b2b2b;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        [data-theme="dark"] .badge-free {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .btn-setup {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .btn-setup:hover {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+        }
+
+        /* DNS Yönetim Paneli */
+        .dns-panel {
+            display: none;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 8px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dns-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        /* DNS Form Alanı */
+        .dns-form {
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr auto;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dns-form select, .dns-form input, .dns-form button {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .dns-form button {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* DNS Tablosu */
+        .dns-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .dns-table th, .dns-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .dns-table th {
+            background-color: var(--card-bg);
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        [data-theme="dark"] .btn-delete {
+            background-color: #880000;
+        }
+
+        .no-records {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">CloudDNS</div>
+        <button class="theme-toggle" id="themeToggle">DARK MODE</button>
+    </header>
+
+    <div class="container">
+        <section class="search-section" id="searchSection">
+            <h2>Ücretsiz Premium Domain Kaydı</h2>
+            <p style="margin-bottom: 15px; color: #666;">İstediğiniz adı yazın; .com, .net, .org dahil tüm uzantılarda anında ücretsiz DNS açın.</p>
+            <div class="search-box">
+                <input type="text" id="domainInput" placeholder="Aratmak istediğiniz alan adını girin...">
+                <button id="searchBtn">Sorgula</button>
+            </div>
+
+            <div class="results-list" id="resultsList">
+                </div>
+        </section>
+
+        <section class="dns-panel" id="dnsPanel">
+            <div class="dns-header">
+                <div>
+                    <h2 style="margin: 0;" id="activeDomainName">domain.com</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 5px;">Gelişmiş DNS Bölge Yönetimi (Ücret Alınmaz)</p>
+                </div>
+                <button class="btn-setup" id="backToSearch">← Yeni Domain Ara</button>
+            </div>
+
+            <div class="dns-form">
+                <select id="recordType">
+                    <option value="A">A</option>
+                    <option value="AAAA">AAAA</option>
+                    <option value="CNAME">CNAME</option>
+                    <option value="TXT">TXT</option>
+                    <option value="MX">MX</option>
+                </select>
+                <input type="text" id="recordName" placeholder="@ veya alt-domain">
+                <input type="text" id="recordValue" placeholder="Hedef IP veya Değer">
+                <button id="addRecordBtn">Kayıt Ekle</button>
+            </div>
+
+            <table class="dns-table">
+                <thead>
+                    <tr>
+                        <th>Kayıt Tipi</th>
+                        <th>İsim (Host)</th>
+                        <th>Değer (Value)</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="dnsRecordsBody">
+                    </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        // --- Tema Değiştirme (Full Siyah) ---
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.textContent = 'DARK MODE';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = 'LIGHT MODE';
+            }
+        });
+
+        // --- Gelişmiş Domain Arama ---
+        const domainInput = document.getElementById('domainInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsList = document.getElementById('resultsList');
+        
+        // İstediğin tüm popüler uzantıları buraya ekledik
+        const premiumExtensions = ['.com', '.net', '.org', '.co', '.xyz', '.io', '.info'];
+        
+        searchBtn.addEventListener('click', performSearch);
+        domainInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        function performSearch() {
+            // Girilen metni temizle (Boşlukları kaldır, küçük harfe çevir)
+            let query = domainInput.value.trim().toLowerCase();
+            
+            // Eğer kullanıcı zaten uzantılı yazdıysa (.com gibi), sadece kök adı alalım
+            query = query.split('.')[0].replace(/[^a-z0-9-]/g, '');
+
+            if (!query) {
+                alert('Lütfen geçerli bir kelime girin.');
+                return;
+            }
+
+            resultsList.innerHTML = ''; // Paneli temizle
+
+            premiumExtensions.forEach(ext => {
+                const fullDomain = query + ext;
+                
+                const item = document.createElement('div');
+                item.className = 'domain-item';
+                
+                item.innerHTML = `
+                    <div>
+                        <span class="domain-name" style="letter-spacing: -0.5px;">${fullDomain}</span>
+                        <span class="badge-free">0.00$ ÜCRETSİZ</span>
+                    </div>
+                    <button class="btn-setup" onclick="openDnsPanel('${fullDomain}')">DNS Yönetimine Git</button>
+                `;
+                resultsList.appendChild(item);
+            });
+        }
+
+        // --- DNS Zone Veritabanı Simülasyonu ---
+        const searchSection = document.getElementById('searchSection');
+        const dnsPanel = document.getElementById('dnsPanel');
+        const activeDomainName = document.getElementById('activeDomainName');
+        const backToSearch = document.getElementById('backToSearch');
+        
+        let currentDomain = "";
+        let mockDatabase = {};
+
+        function openDnsPanel(domain) {
+            currentDomain = domain;
+            activeDomainName.textContent = domain;
+            
+            searchSection.style.display = 'none';
+            dnsPanel.style.display = 'block';
+
+            // Varsayılan kayıtlar oluştur (Vercel/Cloudflare entegrasyonu simülasyonu için)
+            if (!mockDatabase[currentDomain]) {
+                mockDatabase[currentDomain] = [
+                    { type: 'A', name: '@', value: '76.76.21.21' },
+                    { type: 'CNAME', name: 'www', value: 'cname.vercel-dns.com.' }
+                ];
+            }
+            renderDnsRecords();
+        }
+
+        backToSearch.addEventListener('click', () => {
+            dnsPanel.style.display = 'none';
+            searchSection.style.display = 'block';
+        });
+
+        function renderDnsRecords() {
+            const tbody = document.getElementById('dnsRecordsBody');
+            tbody.innerHTML = '';
+            
+            const records = mockDatabase[currentDomain] || [];
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="no-records">Hiç kayıt bulunamadı. Yeni bir tane ekleyin.</td></tr>`;
+                return;
+            }
+
+            records.forEach((record, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${record.type}</strong></td>
+                    <td>${record.name}</td>
+                    <td>${record.value}</td>
+                    <td><button class="btn-delete" onclick="deleteRecord(${index})">Sil</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Kayıt Ekleme
+        document.getElementById('addRecordBtn').addEventListener('click', () => {
+            const type = document.getElementById('recordType').value;
+            const name = document.getElementById('recordName').value.trim() || '@';
+            const value = document.getElementById('recordValue').value.trim();
+
+            if (!value) {
+                alert('Lütfen IP adresi, proxy veya bir değer girin.');
+                return;
+            }
+
+            mockDatabase[currentDomain].push({ type, name, value });
+            
+            document.getElementById('recordName').value = '';
+            document.getElementById('recordValue').value = '';
+            
+            renderDnsRecords();
+        });
+
+        // Kayıt Silme
+        function deleteRecord(index) {
+            mockDatabase[currentDomain].splice(index, 1);
+            renderDnsRecords();
+        }
+    </script>
+</body>
+</html>
